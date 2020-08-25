@@ -1,0 +1,69 @@
+plugins {
+    id "java"
+
+    id "application"
+}
+
+ext {
+    versions = [:]
+    libraries = [:]
+}
+
+versions.junitJupiterVersion = "5.6.2"
+versions.assertjVersion = "3.17.0"
+versions.mockitoVersion = "3.5.7"
+versions.jacocoToolVersion = "0.8.5"
+
+libraries.junitJupiterApi = "org.junit.jupiter:junit-jupiter-api:${versions.junitJupiterVersion}"
+libraries.junitJupiterEngine = "org.junit.jupiter:junit-jupiter-engine:${versions.junitJupiterVersion}"
+libraries.assertjCore = "org.assertj:assertj-core:${versions.assertjVersion}"
+libraries.mockitoCore = "org.mockito:mockito-core:${versions.mockitoVersion}"
+libraries.mockitoJunitJupiter = "org.mockito:mockito-junit-jupiter:${versions.mockitoVersion}"
+
+allprojects {
+
+    apply plugin: "jacoco"
+
+    repositories {
+        mavenCentral()
+    }
+
+    tasks.withType(JavaCompile) {
+        options.release = 11
+        options.encoding = "UTF-8"
+    }
+
+    jacoco {
+        toolVersion = versions.jacocoToolVersion
+        reportsDir = file("${project.buildDir}/jacoco")
+    }
+
+    test.finalizedBy(tasks.jacocoTestReport)
+
+    jacocoTestReport {
+        dependsOn tasks.test
+
+        reports {
+            xml.enabled = false
+            csv.enabled = false
+            html.enabled = true
+        }
+    }
+}
+
+dependencies {
+    testImplementation(libraries.junitJupiterApi)
+    testRuntimeOnly(libraries.junitJupiterEngine)
+
+    testImplementation(libraries.assertjCore)
+    testImplementation(libraries.mockitoCore)
+    testImplementation(libraries.mockitoJunitJupiter)
+}
+
+application {
+    mainClassName = "org.github.tt4g.gradle.jacoco.playground.Application"
+}
+
+test {
+    useJUnitPlatform()
+}
